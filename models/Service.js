@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      profilePic: {
+      coverPhoto: {
         type: DataTypes.STRING,
         allowNull: false,
       },

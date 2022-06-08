@@ -2,7 +2,7 @@ module.exports = (sequelize, DataTypes) => {
   const Address = sequelize.define(
     'Address',
     {
-      title: {
+      detail: {
         type: DataTypes.STRING,
         allowNull: false,
       },

@@ -2,7 +2,16 @@ module.exports = (sequelize, DataTypes) => {
   const Review = sequelize.define(
     'Review',
     {
-      title: DataTypes.STRING,
+      title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      replyToId: DataTypes.INTEGER,
+      like: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0,
+      },
     },
     {
       underscored: true,
