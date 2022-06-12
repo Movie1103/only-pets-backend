@@ -4,7 +4,7 @@ const upload = require('../middlewares/upload');
 
 const router = express.Router();
 
-// router.get('/me', userController.getMe);
+router.get('/me', userController.getMe);
 router.patch('/', upload.single('profilePic'), userController.updateProfile);
 router.get('/:userId', userController.getUserById);
 module.exports = router;

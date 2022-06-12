@@ -4,6 +4,15 @@ const { Op } = require('sequelize');
 const cloudinary = require('../utils/cloudinary');
 const createError = require('../utils/createError');
 
+exports.getMe = async (req, res, next) => {
+  try {
+    const user = req.user;
+    res.json({ user });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;

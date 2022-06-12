@@ -12,39 +12,27 @@ const genToken = payload =>
 
 exports.login = async (req, res, next) => {
   try {
-    const { username, email, password } = req.body;
+    const { usernameOrEmail, password } = req.body;
 
-    if (!username && !email) {
+    if (!usernameOrEmail) {
       createError('username or email is required', 400);
     }
 
-    let token;
-    if (username) {
-      const user = await User.findOne({ where: { username } });
-      if (!user) {
-        createError('invalid credential', 400);
-      }
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        createError('invalid credential');
-      }
-
-      token = genToken({ id: user.id });
+    const user = await User.findOne({
+      where: {
+        [Op.or]: [{ username: usernameOrEmail }, { email: usernameOrEmail }],
+      },
+    });
+    if (!user) {
+      createError('invalid credential', 400);
     }
-    if (email) {
-      const user = await User.findOne({ where: { email } });
-      if (!user) {
-        createError('invalid credential', 400);
-      }
 
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        createError('invalid credential');
-      }
-
-      token = genToken({ id: user.id });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      createError('invalid credential');
     }
+
+    const token = genToken({ id: user.id });
 
     res.status(200).json({ token });
   } catch (err) {
