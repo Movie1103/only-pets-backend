@@ -1,15 +1,15 @@
 const createError = require('../utils/createError');
 
-module.exports = (body, file) => {
+module.exports = (data, file) => {
   const {
     title,
     openAt,
     closeAt,
     phoneNumber,
     category,
-    address: { title: addressTitle, subDistrict, district, province, zipcode },
+    address: { detail, subDistrict, district, province, zipcode },
     location: { latitude, longitude },
-  } = body;
+  } = data;
 
   if (!file) {
     createError('cover photo is required', 400);
@@ -29,7 +29,7 @@ module.exports = (body, file) => {
   if (!category) {
     createError('category is required', 400);
   }
-  if (!addressTitle) {
+  if (!detail) {
     createError('address is required', 400);
   }
   if (!subDistrict) {

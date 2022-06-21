@@ -6,5 +6,6 @@ const router = express.Router();
 
 router.get('/me', userController.getMe);
 router.patch('/', upload.single('profilePic'), userController.updateProfile);
+router.get('/services', userController.getUserServices);
 router.get('/:userId', userController.getUserById);
 module.exports = router;

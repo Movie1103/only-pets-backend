@@ -11,7 +11,7 @@ const notFoundMiddleware = require('./middlewares/notFound');
 const errorMiddleware = require('./middlewares/error');
 
 const { sequelize } = require('./models');
-// sequelize.sync({ alter: true });
+// sequelize.sync({ force: true });
 
 const app = express();
 app.use(cors());
@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use('/auth', authRouter);
 app.use('/users', authenticate, userRouter);
-app.use('/services', authenticate, serviceRouter);
+app.use('/services', serviceRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

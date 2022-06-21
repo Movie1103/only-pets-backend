@@ -21,8 +21,8 @@ module.exports = (sequelize, DataTypes) => {
         name: 'serviceId',
         allowNull: false,
       },
-      // onUpdate: 'RESTRICT',
-      // onDelete: 'RESTRICT',
+      onUpdate: 'RESTRICT',
+      onDelete: 'RESTRICT',
     });
   };
 

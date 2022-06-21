@@ -1,12 +1,24 @@
 const fs = require('fs');
-const { User } = require('../models');
+const {
+  User,
+  Service,
+  Category,
+  Rating,
+  Address,
+  Location,
+  RateCard,
+  Photo,
+  Review,
+  Like,
+  sequelize,
+} = require('../models');
 const { Op } = require('sequelize');
 const cloudinary = require('../utils/cloudinary');
 const createError = require('../utils/createError');
 
 exports.getMe = async (req, res, next) => {
   try {
-    const user = req.user;
+    const user = await User.findOne({ where: { id: req.user.id } });
     res.json({ user });
   } catch (err) {
     next(err);
@@ -15,9 +27,9 @@ exports.getMe = async (req, res, next) => {
 
 exports.getUserById = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.user;
     const user = await User.findOne({
-      where: { id: userId },
+      where: { id },
       attributes: { exclude: ['password'] },
     });
 
@@ -34,12 +46,14 @@ exports.getUserById = async (req, res, next) => {
 
 exports.updateProfile = async (req, res, next) => {
   try {
-    if (!req.file) {
-      createError('profilePic is required', 400);
-    }
-    console.log(req.file, 'testttt');
-
+    const { firstName, lastName } = req.body;
     const updateValue = {};
+    if (firstName !== req.user.firstName) {
+      updateValue.firstName = firstName;
+    }
+    if (lastName !== req.user.lastName) {
+      updateValue.lastName = lastName;
+    }
     if (req.file) {
       const result = await cloudinary.upload(req.file.path);
       if (req.user.profilePic) {
@@ -58,5 +72,52 @@ exports.updateProfile = async (req, res, next) => {
     if (req.file) {
       fs.unlinkSync(req.file.path);
     }
+  }
+};
+
+exports.getUserServices = async (req, res, next) => {
+  try {
+    const { id } = req.user;
+    const services = await Service.findAll({
+      where: { userId: id },
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: Category,
+          as: 'category',
+        },
+        {
+          model: Address,
+          as: 'address',
+        },
+        {
+          model: Location,
+          as: 'location',
+        },
+        {
+          model: RateCard,
+          as: 'rateCard',
+        },
+        {
+          model: Photo,
+          as: 'photos',
+        },
+        {
+          model: Review,
+          as: 'reviews',
+          include: {
+            model: Like,
+            as: 'likes',
+          },
+        },
+      ],
+    });
+    console.log('service: ', services, 1239876432);
+    if (!services) {
+      createError('service not found', 400);
+    }
+    res.json({ services });
+  } catch (err) {
+    next(err);
   }
 };

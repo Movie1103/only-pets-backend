@@ -11,12 +11,66 @@ const {
   Location,
   RateCard,
   Photo,
+  Review,
+  Like,
   sequelize,
 } = require('../models');
 
 exports.getAllServices = async (req, res, next) => {
   try {
-    const services = await Service.findAll();
+    const services = await Service.findAll({
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: Category,
+          as: 'category',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'id', 'serviceId'],
+          },
+        },
+        {
+          model: Address,
+          as: 'address',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'id', 'serviceId'],
+          },
+        },
+        {
+          model: Location,
+          as: 'location',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'id', 'serviceId'],
+          },
+        },
+        {
+          model: RateCard,
+          as: 'rateCard',
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'serviceId'],
+          },
+        },
+        {
+          model: Photo,
+          as: 'photos',
+          order: [['createdAt', 'DESC']],
+          attributes: {
+            exclude: ['createdAt', 'updatedAt', 'serviceId'],
+          },
+        },
+        {
+          model: Review,
+          as: 'reviews',
+          order: [['createdAt', 'DESC']],
+          attributes: {
+            exclude: ['serviceId'],
+          },
+          include: {
+            model: Like,
+            as: 'likes',
+          },
+        },
+      ],
+    });
     res.json({ services });
   } catch (err) {
     next(err);
@@ -24,13 +78,24 @@ exports.getAllServices = async (req, res, next) => {
 };
 
 exports.createService = async (req, res, next) => {
-  let t;
+  const body = req.body;
+  const category = JSON.parse(body.category);
+  const address = JSON.parse(body.address);
+  const location = JSON.parse(body.location);
+  const t = await sequelize.transaction();
   try {
-    t = await sequelize.transaction();
+    const { title, openAt, closeAt, phoneNumber, line, facebook, instagram } =
+      body;
+    const { grooming, shop, hospital, hotel } = category;
+    const { detail, subDistrict, district, province, zipcode } = address;
+    const { latitude, longitude } = location;
 
-    validateService(req.body, req.file);
-
-    const {
+    let coverPhoto;
+    if (req.file) {
+      const result = await cloudinary.upload(req.file.path);
+      coverPhoto = result.secure_url;
+    }
+    const data = {
       title,
       openAt,
       closeAt,
@@ -38,16 +103,18 @@ exports.createService = async (req, res, next) => {
       line,
       facebook,
       instagram,
-      category: { grooming, shop, hospital, hotel },
-      address: { detail, subDistrict, district, province, zipcode },
-      location: { latitude, longitude },
-    } = req.body;
+      category,
+      address,
+      location,
+    };
 
-    let coverPhoto;
-    if (req.file) {
-      const result = await cloudinary.upload(req.file.path);
-      coverPhoto = result.secure_url;
+    validateService(data, req.file);
+
+    const user = await User.findOne({ where: { id: req.user.id } });
+    if (!user) {
+      createError('user not found', 400);
     }
+
     const serviceInfo = await Service.create(
       {
         title,
@@ -91,10 +158,17 @@ exports.createService = async (req, res, next) => {
       },
       { transaction: t }
     );
+
+    if (user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save({ transaction: t });
+    }
+    await t.commit();
     res.json({
       service: [serviceInfo, serviceCategory, serviceAddress, serviceLocation],
     });
   } catch (err) {
+    await t.rollback();
     next(err);
   } finally {
     if (req.file) {
@@ -157,7 +231,7 @@ exports.updateService = async (req, res, next) => {
       }
     }
 
-    if (req.file) {
+    if (req.file !== null) {
       if (service.coverPhoto) {
         const splitted = service.coverPhoto.split('/');
         const publicId = splitted[splitted.length - 1].split('.')[0];
@@ -182,8 +256,49 @@ exports.updateService = async (req, res, next) => {
 };
 
 exports.deleteService = async (req, res, next) => {
+  // const t = await sequelize.transaction();
   try {
+    const { serviceId } = req.params;
+    console.log(serviceId);
+
+    const service = await Service.findOne({
+      where: { id: serviceId },
+      include: [
+        { model: Category, as: 'category' },
+        { model: Location, as: 'location' },
+      ],
+    });
+    console.log(service);
+    const user = await User.findOne({ where: { id: req.user.id } });
+    // const review = await Review.findAll({ where: { serviceId } });
+    if (!service) {
+      createError('service not found', 400);
+      user.role = 'user';
+      await user.save();
+    }
+    // if (review) {
+    //   await Like.destroy({ where: { reviewId: review.id } });
+    //   await Review.destroy({ where: { id: serviceId } });
+    // }
+    await Category.destroy({ where: { serviceId } });
+    await Address.destroy({ where: { serviceId } });
+    console.log('1');
+    // await RateCard.destroy({ where: { serviceId } }, { transaction: t });
+    await Location.destroy({ where: { serviceId } });
+    console.log('2');
+    // await Photo.destroy({ where: { serviceId } }, { transaction: t });
+    // await Rating.destroy({ where: { serviceId } }, { transaction: t });
+    if (service.coverPhoto) {
+      const splitted = service.coverPhoto.split('/');
+      const publicId = splitted[splitted.length - 1].split('.')[0];
+      await cloudinary.destroy(publicId);
+    }
+    console.log('3');
+    await Service.destroy({ where: { id: serviceId } });
+    // await t.commit();
+    res.status(204).json();
   } catch (err) {
+    // await t.rollback();
     next(err);
   }
 };

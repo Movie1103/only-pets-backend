@@ -36,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     Review.hasMany(models.Like, {
+      as: 'likes',
       foreignKey: {
         name: 'reviewId',
         allowNull: false,

@@ -37,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     Service.hasMany(models.Review, {
+      as: 'reviews',
       foreignKey: {
         name: 'serviceId',
         allowNull: false,
@@ -45,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     Service.hasMany(models.Rating, {
+      as: 'ratings',
       foreignKey: {
         name: 'serviceId',
         allowNull: false,
@@ -53,6 +55,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     Service.hasMany(models.Photo, {
+      as: 'photos',
       foreignKey: {
         name: 'serviceId',
         allowNull: false,
@@ -61,14 +64,15 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     Service.hasMany(models.RateCard, {
+      as: 'rateCard',
       foreignKey: {
         name: 'serviceId',
-        allowNull: false,
       },
       onUpdate: 'RESTRICT',
       onDelete: 'RESTRICT',
     });
     Service.hasOne(models.Category, {
+      as: 'category',
       foreignKey: {
         name: 'serviceId',
         allowNull: false,
@@ -77,6 +81,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     Service.hasOne(models.Address, {
+      as: 'address',
       foreignKey: {
         name: 'serviceId',
         allowNull: false,
@@ -85,6 +90,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     Service.hasOne(models.Location, {
+      as: 'location',
       foreignKey: {
         name: 'serviceId',
         allowNull: false,

@@ -45,6 +45,7 @@ module.exports = (sequelize, DataTypes) => {
 
   User.associate = models => {
     User.hasMany(models.Service, {
+      as: 'services',
       foreignKey: {
         name: 'userId',
         allowNull: false,
@@ -53,6 +54,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     User.hasMany(models.Review, {
+      as: 'reviews',
       foreignKey: {
         name: 'userId',
         allowNull: false,
@@ -61,6 +63,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     User.hasMany(models.Rating, {
+      as: 'ratings',
       foreignKey: {
         name: 'userId',
         allowNull: false,
@@ -69,6 +72,7 @@ module.exports = (sequelize, DataTypes) => {
       onDelete: 'RESTRICT',
     });
     User.hasMany(models.Like, {
+      as: 'likes',
       foreignKey: {
         name: 'userId',
         allowNull: false,
